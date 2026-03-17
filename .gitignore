@@ -1,0 +1,12 @@
+# Credentials and Environment
+.env
+__pycache__/
+*.pyc
+
+# Virtual Environments
+venv/
+env/
+
+# OS files
+.DS_Store
+Thumbs.db
