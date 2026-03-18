@@ -1,56 +1,97 @@
-AgentGuard: Multi-Agent Financial Compliance System
-AgentGuard is an AI-driven observability platform designed to audit and sanitize financial advice in real-time. By leveraging a multi-cloud orchestration layer, the system intercepts potentially "high-risk" or speculative financial suggestions from a primary agent before they reach the end user.
+# 🛡️ AgentGuard: Multi-Agent Financial Compliance System
 
-🏗️ Architecture
-The system utilizes LangGraph to manage a stateful, cyclic workflow between two distinct Large Language Models (LLMs) from different providers:
+**AgentGuard** is an AI-powered observability platform designed to audit, filter, and sanitize financial advice in real time. It leverages a multi-agent architecture to prevent risky, speculative, or non-compliant financial suggestions from reaching end users.
 
-The Worker (Grok-4): Acts as the primary reasoning engine, providing detailed financial analysis and answering user queries.
+By combining multiple LLM providers and a stateful orchestration layer, AgentGuard ensures **safe, compliant, and reliable AI-generated financial insights**.
 
-The Guard (Gemini 3 Flash): A dedicated security layer that audits the Worker's output for "Get Rich Quick" schemes, penny stock promotion, or speculative "doubler" advice.
+---
 
-The Router: A conditional logic gate that either allows "CLEAN" content through or redirects "RISKY" content to a sanitization node.
+## 🏗️ Architecture
 
-🚀 Key Features
-Cross-Cloud Redundancy: Combines xAI (Grok) and Google Cloud (Gemini) to avoid single-point-of-failure and provider lock-in.
+AgentGuard uses **LangGraph** to orchestrate a cyclic, stateful workflow between two specialized agents:
 
-Production-Grade Resiliency: Implemented Exponential Backoff and Request Throttling (2s cooldowns) to navigate Free Tier API rate limits (429 errors) without service interruption.
+### 🔹 Worker (Grok-4)
+- Primary reasoning engine  
+- Generates financial insights and responses  
+- Handles user queries with detailed analysis  
 
-Serverless Deployment: Architected for Google Cloud Run, utilizing "Scale-to-Zero" logic for maximum cost efficiency.
+### 🔹 Guard (Gemini 3 Flash)
+- Acts as a compliance and safety layer  
+- Audits outputs for:
+  - “Get Rich Quick” schemes  
+  - Penny stock promotions  
+  - Speculative or misleading advice  
 
-Stateful Orchestration: Built with LangGraph to ensure message history and auditing states are preserved throughout the conversation lifecycle.
+### 🔹 Router
+- Conditional logic controller  
+- Routes responses based on risk classification:
+  - ✅ CLEAN → Sent to user  
+  - ⚠️ RISKY → Redirected for sanitization  
 
-🛠️ Tech Stack
-Orchestration: LangGraph, LangChain
+---
 
-LLMs: xAI Grok-4 (Reasoning), Google Gemini 3 Flash (Auditing)
+## 🚀 Key Features
 
-Interface: Streamlit
+- 🔁 **Cross-Cloud Redundancy:** Combines xAI (Grok) and Google Cloud (Gemini) to avoid vendor lock-in and improve reliability  
+- ⚙️ **Production-Grade Resiliency:** Implements exponential backoff and request throttling (2s cooldown) to handle API rate limits  
+- ☁️ **Serverless Deployment:** Designed for Google Cloud Run with scale-to-zero capability for cost efficiency  
+- 🔄 **Stateful Orchestration:** Built using LangGraph to preserve conversation and audit state across interactions  
 
-Cloud/DevOps: Google Cloud Run, Docker, GCP Artifact Registry
+---
 
-Language: Python 3.11+
+## 🛠️ Tech Stack
 
-📦 Installation & Setup
-Clone the repository:
+- **Orchestration:** LangGraph, LangChain  
+- **LLMs:** Grok-4 (xAI), Gemini 3 Flash (Google)  
+- **Frontend:** Streamlit  
+- **Cloud/DevOps:** Google Cloud Run, Docker, GCP Artifact Registry  
+- **Language:** Python 3.11+  
 
-Bash
+---
+
+## 📦 Installation & Setup
+
+```bash
 git clone https://github.com/your-username/agent-guard-app.git
 cd agent-guard-app
-Set up Environment Variables:
-Create a .env file in the root directory:
 
-Code snippet
+## Set up Environment Variables
+
 XAI_API_KEY=your_grok_key
 GOOGLE_API_KEY=your_gemini_key
-Deploy to Google Cloud Run:
 
-PowerShell
+## Deploy to Google Cloud Run
+
 gcloud run deploy agent-guard-app --source . --region us-central1
-🚦 Usage Example
-Safe Query: "What is a diversified index fund?"
+```
 
-Result: Worker provides a detailed explanation; Guard labels it CLEAN; User sees the full response.
+## 🚦 Usage Example
 
-Risky Query: "Which penny stocks will double tomorrow?"
+| User Query | Worker Action | Guard Result | Final Output |
+| :--- | :--- | :--- | :--- |
+| "What is a diversified index fund?" | Generates educational content | **CLEAN** | Full response displayed |
+| "Which penny stocks will double tomorrow?" | Generates speculative content | **RISK DETECTED** | Compliance Disclaimer |
 
-Result: Worker might generate a response, but Guard triggers RISK DETECTED; User receives a standard compliance disclaimer.
+---
+
+## 🔄 System Workflow
+
+```mermaid
+graph TD
+    A[User Input] --> B(Worker: Grok-4)
+    B --> C{Guard Audit: Gemini 3}
+    C -- CLEAN --> D[Display to User]
+    C -- RISK DETECTED --> E[Sanitize / Disclaimer]
+    E --> D
+```
+
+## 🧠 Technical Challenges & Solutions
+
+### Overcoming Rate Limiting (429 Errors)
+During development, the Gemini 3 Flash Free Tier imposed strict **Rate-Per-Minute (RPM)** limits, which initially caused service disruptions during high-frequency testing.
+
+**Solutions Implemented:**
+
+* **Exponential Backoff:** Configured LangChain's `max_retries` parameter to automatically handle transient 429 errors by waiting and retrying requests.
+* **Request Throttling:** Integrated a `time.sleep(2)` "cool-down" period between the Worker and Guard nodes to stay consistently below the 15 RPM threshold.
+* **Multi-Cloud Fallback:** Engineered the architecture to allow for seamless switching between Google and xAI endpoints, ensuring system uptime even during local quota exhaustion.
