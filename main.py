@@ -13,36 +13,30 @@ from core.graph import agent_app
 
 st.title("🛡️ AgentGuard: Real-Time Observability")
 
-# Initialize Session State for Messages
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+# Display existing conversation history first
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
 user_input = st.chat_input("Ask about financial tasks...")
 
 if user_input:
-    # 1. Add User message to state
+    # Show user message immediately without waiting for the model
     st.session_state.messages.append({"role": "user", "content": user_input})
-    
-    # 2. Run the LangGraph Agentic Workflow
-    inputs = {"messages": [HumanMessage(content=user_input)]}
-    result = agent_app.invoke(inputs)
-    
-    # 3. SAFELY extract content to avoid "string indices" error
-    # Result["messages"] contains LangChain objects (AIMessage)
-    for msg in result["messages"]:
-        # Extract the text content safely
-        if hasattr(msg, 'content'):
-            content_text = msg.content
-        elif isinstance(msg, dict):
-            content_text = msg.get("content", str(msg))
-        else:
-            content_text = str(msg)
-            
-        # Update UI state
-        role = "assistant" if isinstance(msg, AIMessage) else "user"
-        st.session_state.messages.append({"role": role, "content": content_text})
+    with st.chat_message("user"):
+        st.markdown(user_input)
 
-# 4. Display Logic (The part that was crashing)
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+    # Run the LangGraph workflow
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            result = agent_app.invoke({"messages": [HumanMessage(content=user_input)]})
+
+        # Only extract AIMessages — the result also contains the input HumanMessage
+        # which would cause the prompt to appear twice if we iterated all messages
+        for msg in result["messages"]:
+            if isinstance(msg, AIMessage):
+                st.markdown(msg.content)
+                st.session_state.messages.append({"role": "assistant", "content": msg.content})
