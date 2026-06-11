@@ -1,7 +1,15 @@
 import streamlit as st
 import os
+
+# Inject Streamlit secrets into env vars so core modules can use os.getenv()
+try:
+    for _k, _v in st.secrets.items():
+        os.environ.setdefault(_k, str(_v))
+except Exception:
+    pass  # local .env file used instead
+
 from langchain_core.messages import HumanMessage, AIMessage
-from core.graph import agent_app # Assuming your compiled graph is here
+from core.graph import agent_app
 
 st.title("🛡️ AgentGuard: Real-Time Observability")
 

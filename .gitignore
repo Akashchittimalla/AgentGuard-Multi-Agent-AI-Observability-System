@@ -1,5 +1,6 @@
 # Credentials and Environment
 .env
+.streamlit/secrets.toml
 __pycache__/
 *.pyc
 

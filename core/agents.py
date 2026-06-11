@@ -19,11 +19,10 @@ worker_llm = ChatXAI(
     temperature=0
 )
 
-guard_llm = ChatGoogleGenerativeAI(
-    model="gemini-3-flash-preview", 
-    google_api_key=os.getenv("GOOGLE_API_KEY"),
-    temperature=0,
-    max_retries=6  # Handles the "Rate Limit" by waiting automatically
+guard_llm = ChatXAI(
+    model="grok-4-latest",
+    xai_api_key=SecretStr(xai_key),
+    temperature=0
 )
 
 # 3. Agent Functions
